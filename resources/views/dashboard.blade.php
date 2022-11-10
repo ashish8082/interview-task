@@ -22,8 +22,20 @@
         </nav>
     </div>
     <div class="container-fluid">
+        <span>Welcome {{Session::get('uname')}}</span>
+       
         <div class="row mt-5">
+
+           
             <div class="col-md-8">
+                <div class="mt-5 mb-5">
+                    <select name="searchdata" id="searchdata">
+                        <option value="">Please Select</option>
+                        <option value="updated_date">Update Date</option>
+                        <option value="by_descending_year">Descending Year</option>
+                    </select>
+                    <button class="btn btn-success btn-sm" id ="search">Search</button>
+                </div>
                 <table id="vahicle_name" class="display" style="width:100%" border="1px solid gray">
                     <thead>
                         <tr>
@@ -176,6 +188,28 @@
       
    });
 
+   $('body').on('click', '#search', function(){
+       
+       var searchdata = $("#searchdata").val();
+       if(searchdata==null || searchdata=="")
+       {
+            alert('Please select filter');
+            return false;
+       }
+       $.ajax({
+           url: '{{ url("/search-data") }}/',
+           type: 'POST',
+           data: {searchdata,"_token": "{{ csrf_token() }}"},
+           success: function(data)
+            {
+               
+               if (data.success)
+                {
+                    $('#vehicleBody').html(data.totalvahicle);
+               }
+           },
+       });
+   });
       
     </script>
 </body>

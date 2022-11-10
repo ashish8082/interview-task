@@ -19,8 +19,13 @@ use App\Http\Controllers\loginController;
 Route::get('/',[loginController::class,"index"]);
 Route::post('/login',[loginController::class,"login"]);
 Route::post('/add-vehicle',[loginController::class,"addVehicle"]);
-Route::get('/dashboard',[loginController::class,"dashboard"]);
+Route::get('/dashboard',[loginController::class,"dashboard"])->name('dashboard.index');
 Route::post('/user-logout',[loginController::class,"userLogout"]);
 Route::post('/delete-vehicle/{id}',[loginController::class,"deleteVehicle"]);
+Route::get('/register',[loginController::class,"register"]);
+route::post('/register/add',[loginController::class,"registerForm"]);
+Route::post('/search-data',[loginController::class,"searchData"]);
+
+
 
 

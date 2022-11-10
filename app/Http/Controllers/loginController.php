@@ -8,20 +8,13 @@ use App\Models\User;
 use Auth;
 use Session;
 use App\Models\Vehicle;
+use Hash;
 class loginController extends Controller
 {
     public function index()
     {
-        if(Session::get('user_name'))
-        {
-            return redirect('dashboard');
-           
-        }
-        else 
-        {
-            return view('login');
-        }
-      
+       
+        return view('login');
     }
     public function login(Request $request)
     {
@@ -39,15 +32,14 @@ class loginController extends Controller
            ],$message);
            if($validator->fails())
            {
-            return redirect()->back()->withErrors($validator)->withInput();
-           }
+                return response()->json(['errors' => $validator->errors()]);
+            }
            else 
            {
                 $email =$request->email;
                 $password = $request->password;
             
               $user_details = User::where('email', $email)->get();
-
                  
                 if (count($user_details) > 0) 
                 {
@@ -55,18 +47,20 @@ class loginController extends Controller
                        
                             if (Auth::attempt(['email'=>$email,'password'=>$password]))
                             {
-                                Session::put("user_name",$email);
-                                return redirect('dashboard');
+                                Session::put("uname",$user_details[0]->name);
+                                return response()->json(['success' =>'Added successfully']);
+
                             } 
                             else 
                             {
-                                return redirect()->back()->with('error', 'Validation Error')->withErrors(array('password' => 'Please enter  correct password'))->withInput();
+                                return response()->json(['password' =>'Please enter  correct password']);
+                              
                             }
                     
                 } 
                 else
                  {
-                     return redirect()->back()->with('error', 'Validation Error')->withErrors(array('password' => 'User email  not found'))->withInput();
+                     return response()->json(['email' =>'  user email is not found']);
                     
                 }
            }
@@ -139,28 +133,18 @@ class loginController extends Controller
        }
     }
     public function dashboard()
-    {
-        if(Session::get('user_name'))
-        {
-            $userid = Auth::user()->id;
-           
-           
-            $vehicles = Vehicle::where('user_id',$userid)->get();
-            
-            return  view('dashboard')
-            ->with("vehicles",$vehicles);
-        }
-        else 
-        {
-            return redirect('/');
-        }
-      
+    {    
+                $userid = Auth::user()->id;
+                $vehicles = Vehicle::where('user_id',$userid)->get();
+                return  view('dashboard')
+                ->with("vehicles",$vehicles);
+          
     }
     public function userLogout(Request $request)
     {
        
             Auth::logout();
-            Session::forget('user_name');
+            Session::forget('uname');
             return redirect('/');
         
     }
@@ -195,5 +179,95 @@ class loginController extends Controller
         
 
       
+    }
+    public function register()
+    {
+       return view('registration');
+      
+    }
+    public function registerForm(Request $request)
+    {
+        if($request->isMethod('post'))
+        {
+            $request_data = $request->all();
+	    
+        $messages = [
+                    'fname.required'=> 'Please enter name',
+                    'email.required' => 'Please enter email',                    
+                    'password.required' => 'Please enter password',
+                    'password.min'=>'Password should be 8 character',
+                    'email.unique'=>'Email is already exists'
+            ];
+            $validator = Validator::make($request_data, [
+                    'email' => 'required|unique:users',
+                    'password' => 'required|min:8', 
+                    'fname' => 'required'	
+            ], $messages);
+
+        if($validator->fails())
+        {
+            return response()->json(['errors' => $validator->errors()]);
+        }
+        else
+            {
+                $user = New User();
+                $user->name = $request->fname;
+                $user->email = $request->email;
+                $user->password = hash::make($request->password);
+                $user->save();
+                Session::put("uname",$request->fname);
+
+                if (Auth::attempt(['email' => $request->email, 'password' => $request->password]))
+                return response()->json(['success' =>'User Added successfully']);
+            }
+        }
+    }
+    public function searchData(Request $request)
+    {
+        if($request->isMethod('post'))
+        {
+            
+            $userid = Auth::user()->id;
+           
+            $vehicledata = [];
+           
+            if($request->searchdata =="updated_date")
+            {   
+                $vehicledata=  Vehicle::where('user_id',$userid)
+                 ->whereDate('created_at', '=', date('Y-m-d'))
+                 ->orderBy('created_at','desc')->get();
+            }
+            if($request->searchdata =="by_descending_year")
+            {
+                $vehicledata=  Vehicle::where('user_id',$userid)
+                    ->whereYear('yom', '=',date('Y-m-d'))
+                    ->orderBy('yom','desc')->get();
+
+                    
+            }
+            
+            $i=1;
+            foreach( $vehicledata as $key=>$vehicleRow)
+            {
+                if($vehicleRow->vehicle_type== 1 )
+                {
+                    $vehicle_name ="Car";
+                }
+                else if($vehicleRow->vehicle_type==2)
+                {
+                    $vehicle_name ="Bike";
+                }
+                else if($vehicleRow->vehicle_type==3)
+                {
+                    $vehicle_name ="Bus";
+                }
+    
+                $totalVehicle[] = "<tr><td>".$i."</td><td>".$vehicle_name."</td><td>".$vehicleRow->vehicle_type."</td><td>".$vehicleRow->yom."</td><td>".$vehicleRow->dop."</td><td>".$vehicleRow->created_at."</td><td>".$vehicleRow->updated_at."</td><td><button class='btn btn-primary editVehicle mb-2' id='editVehicle' value=".$vehicleRow->id." data-vehicle_type=".$vehicleRow->vehicle_type." data-yom=".$vehicleRow->yom." data-dop=".$vehicleRow->dop.">Edit</button><button  class='btn btn-danger deleteVehicle' value =".$vehicleRow->id.">Delete</button></td></tr>";
+                $i++;
+            }
+            return response()->json(['success' => '1',"totalvahicle"=> $totalVehicle]);
+            
+            
+        }
     }
 }
