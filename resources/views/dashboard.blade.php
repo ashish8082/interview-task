@@ -31,7 +31,7 @@
                 <div class="mt-5 mb-5">
                     <select name="searchdata" id="searchdata">
                         <option value="">Please Select</option>
-                        <option value="updated_date">Update Date</option>
+                        {{-- <option value="updated_date">Update Date</option> --}}
                         <option value="by_descending_year">Descending Year</option>
                     </select>
                     <button class="btn btn-success btn-sm" id ="search">Search</button>

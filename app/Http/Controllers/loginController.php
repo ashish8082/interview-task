@@ -231,12 +231,12 @@ class loginController extends Controller
            
             $vehicledata = [];
            
-            if($request->searchdata =="updated_date")
-            {   
-                $vehicledata=  Vehicle::where('user_id',$userid)
-                 ->whereDate('created_at', '=', date('Y-m-d'))
-                 ->orderBy('created_at','desc')->get();
-            }
+            // if($request->searchdata =="updated_date")
+            // {   
+            //     $vehicledata=  Vehicle::where('user_id',$userid)
+            //      ->whereDate('created_at', '=', date('Y-m-d'))
+            //      ->orderBy('created_at','desc')->get();
+            // }
             if($request->searchdata =="by_descending_year")
             {
                 $vehicledata=  Vehicle::where('user_id',$userid)
